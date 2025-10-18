@@ -2,24 +2,12 @@
 #define EEZ_LVGL_UI_SCREENS_H
 
 #include <lvgl.h>
+#include "structs.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct _objects_t {
-    lv_obj_t *main;
-    lv_obj_t *btn_snooze;
-    lv_obj_t *btntxt_snooze;
-    lv_obj_t *pnl_grey;
-    lv_obj_t *pnl_black;
-    lv_obj_t *txt_grey;
-    lv_obj_t *txt_black;
-    lv_obj_t *lbl_black;
-    lv_obj_t *lbl_grey;
-} objects_t;
-
-extern objects_t objects;
 
 enum ScreensEnum {
     SCREEN_ID_MAIN = 1,

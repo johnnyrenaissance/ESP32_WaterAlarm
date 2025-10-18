@@ -51,15 +51,20 @@ void my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
   // TODO: Replace with your custom touch-screen handling logic!
 
   TS_Point p = touchscreen.getPoint();
-  touched = (p.z > 375 && p.z < 415);
+  touched = (p.z > 375);// && p.z < 415);
 
-  float x = 1.0f * p.x - 200.0f;
-  float y = 1.0f * p.y - 135.0f;
-  x = (x / 685.0f) * 240.0f;
-  y = (y / 735.0f) * 320.0f;
+  //float x = 1.0f * p.x - 200.0f;
+  //float y = 1.0f * p.y - 135.0f;
+  //x = (x / 685.0f) * 240.0f;
+  //y = (y / 735.0f) * 320.0f;
 
-  x = (x - 480.0f) * -1.0f - 240;
-  y = (y - 640.0f) * -1.0f - 320;
+  //x = (x - 480.0f) * -1.0f - 240;
+  //y = (y - 640.0f) * -1.0f - 320;
+
+    x = map(p.x, 200, 3700, 1, screenWidth);
+    y = map(p.y, 240, 3800, 1, screenHeight);
+    z = p.z; // for debug
+  printTouchToSerial(x, y, z);
 
   if(touched && !coordinatesSet)
   {
@@ -127,17 +132,7 @@ void loop() {
   lv_timer_handler();
     Serial.begin(115200);
 
- if (touchscreen.tirqTouched() && touchscreen.touched()) {
-    // Get Touchscreen points
-    TS_Point p = touchscreen.getPoint();
-    // Calibrate Touchscreen points with map function to the correct width and height
-    x = map(p.x, 200, 3700, 1, screenWidth);
-    y = map(p.y, 240, 3800, 1, screenHeight);
-    z = p.z;
 
-    //printTouchToSerial(x, y, z);
-  
- }
 
   // Update EEZ-Studio UI
   ui_tick();

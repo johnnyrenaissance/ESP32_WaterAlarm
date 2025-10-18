@@ -33,7 +33,7 @@ void create_screen_main() {
             objects.btn_snooze = obj;
             lv_obj_set_pos(obj, 31, 193);
             lv_obj_set_size(obj, 257, 29);
-            lv_obj_add_event_cb(obj, action_snooze_alarm, LV_EVENT_PRESSED, (void *)0);
+            lv_obj_add_event_cb(obj, action_snooze_alarm, LV_EVENT_PRESSED, &objects);
             lv_obj_set_style_bg_color(obj, lv_color_hex(0xff2196f3), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_grad_dir(obj, LV_GRAD_DIR_HOR, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_grad_color(obj, lv_color_hex(0xff000000), LV_PART_MAIN | LV_STATE_DEFAULT);
