@@ -14,7 +14,7 @@ extern "C" {
 
 // Flow global variables
 
-enum FlowGlobalVariables {
+enum ThisWasAGarbageEnum_BadEEZ {
     FLOW_GLOBAL_VARIABLE_IS_BLACK_FULL = 0,
     FLOW_GLOBAL_VARIABLE_IS_GREY_FULL = 1,
     FLOW_GLOBAL_VARIABLE_LAST_BLACK_STATE = 2,

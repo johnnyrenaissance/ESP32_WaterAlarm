@@ -13,13 +13,13 @@ enum ScreensEnum {
     SCREEN_ID_MAIN = 1,
 };
 
-void create_screen_main();
+objects_t* create_screen_main();
 void tick_screen_main();
 
 void tick_screen_by_id(enum ScreensEnum screenId);
 void tick_screen(int screen_index);
 
-void create_screens();
+objects_t* create_screens();
 
 
 #ifdef __cplusplus

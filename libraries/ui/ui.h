@@ -19,7 +19,7 @@ extern "C" {
 
 
 
-void ui_init();
+objects_t* ui_init();
 void ui_tick();
 
 #if !defined(EEZ_FOR_LVGL)

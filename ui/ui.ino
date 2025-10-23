@@ -3,8 +3,7 @@
 #include <TFT_eSPI.h>
 #include <ui.h>
 #include <XPT2046_Touchscreen.h>
-
-
+#include <structs.h>
 
 // Touchscreen pins
 #define XPT2046_IRQ 36   // T_IRQ
@@ -13,7 +12,13 @@
 #define XPT2046_CLK 25   // T_CLK
 #define XPT2046_CS 33    // T_CS
 
-// TODO: Replace with your screen resolution
+#define BLACK_INPUT_PIN 23
+#define GREY_INPUT_PIN 19
+#define BUZZER_PIN 18
+
+bool blackInputState = 0;
+bool greyInputState = 0;
+
 static const uint16_t screenWidth  = 320;
 static const uint16_t screenHeight = 240;
 
@@ -22,6 +27,11 @@ static lv_color_t buf[ screenWidth * screenHeight / 10 ];
 
 bool touched = false;
 bool coordinatesSet = false;
+
+objects_t *screenObjects;
+
+// Define the control_vars instance
+control_vars cv = {false, false, false, false, false};
 
 // TODO: Replace with your screen's touch controller
 SPIClass touchscreenSPI = SPIClass(VSPI);
@@ -64,7 +74,7 @@ void my_touchpad_read(lv_indev_drv_t * indev_driver, lv_indev_data_t * data)
     x = map(p.x, 200, 3700, 1, screenWidth);
     y = map(p.y, 240, 3800, 1, screenHeight);
     z = p.z; // for debug
-  printTouchToSerial(x, y, z);
+  //printTouchToSerial(x, y, z);
 
   if(touched && !coordinatesSet)
   {
@@ -95,9 +105,29 @@ void printTouchToSerial(int touchX, int touchY, int touchZ) {
   Serial.println();
 }
 
+void IRAM_ATTR onTimer() {
+  // This function is called when the timer elapses
+  // Toggle the LED state
+  cv.is_snoozed = false;
+}
+
 void setup()
 {
   lv_init();
+  
+    // Use the first timer (ID 0)
+  // Configure a prescaler of 80 (80 MHz / 80 = 1 MHz)
+  // Set the timer to count up
+  cv.timer = timerBegin(1);
+  
+  // Attach the interrupt handler to the timer
+  // The third parameter `true` means the ISR is called on a timer alarm
+  timerAttachInterrupt(cv.timer, &onTimer);
+  
+  // Initialize control variables
+  pinMode(BLACK_INPUT_PIN, INPUT);
+  pinMode(GREY_INPUT_PIN, INPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
 
   // Start the SPI for the touchscreen and init the touchscreen
   touchscreenSPI.begin(XPT2046_CLK, XPT2046_MISO, XPT2046_MOSI, XPT2046_CS);
@@ -125,15 +155,65 @@ void setup()
   lv_indev_drv_register( &indev_drv );
 
   // Init EEZ-Studio UI
-  ui_init();
+  screenObjects = ui_init();
 }
 
 void loop() {
   lv_timer_handler();
-    Serial.begin(115200);
+  Serial.begin(115200);
 
+  blackInputState = digitalRead(BLACK_INPUT_PIN);
+  greyInputState = digitalRead(GREY_INPUT_PIN);
 
+  if (blackInputState == LOW) {
+    cv.is_black_full = true;
+    if (cv.last_black_state == false) {
+      cv.last_black_state = true;
+      lv_obj_clear_flag(screenObjects->txt_black, LV_OBJ_FLAG_HIDDEN); // show
+      lv_obj_set_style_bg_color(screenObjects->pnl_black, lv_color_hex(0x00000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+    }
+    Serial.println("Black Water detected");
+  } else {
+    cv.is_black_full = false;
+    cv.is_snoozed = false;
+    if (cv.last_black_state == true) {
+      cv.last_black_state = false;
+      lv_obj_add_flag(screenObjects->txt_black, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_set_style_bg_color(screenObjects->pnl_black, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+    }
+    Serial.println("Black No water detected");
+  }
+
+  if (greyInputState == LOW) {
+    cv.is_grey_full = true;
+    if (cv.last_grey_state == false) {
+      cv.last_grey_state = true;
+      lv_obj_clear_flag(screenObjects->txt_grey, LV_OBJ_FLAG_HIDDEN); // show
+      lv_obj_set_style_bg_color(screenObjects->pnl_grey, lv_color_hex(0x36454F), LV_PART_MAIN | LV_STATE_DEFAULT);
+    }
+    Serial.println("Grey Water detected");
+  } else {
+    cv.is_grey_full = false;
+    cv.is_snoozed = false;
+    if (cv.last_grey_state == true) {
+      cv.last_grey_state = false;
+      lv_obj_add_flag(screenObjects->txt_grey, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_set_style_bg_color(screenObjects->pnl_grey, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+    }
+    Serial.println("Grey No water detected");
+  }
+
+  if (cv.is_black_full == true || cv.is_grey_full == true) {
+    if (cv.is_snoozed == false) {
+      tone(BUZZER_PIN, 1000); // Generate a 1KHz tone on the buzzer pin
+      delay(200);           // Keep the tone playing for 1 second
+      noTone(BUZZER_PIN);     // Stop the tone
+      delay(200); 
+    }
+  }
 
   // Update EEZ-Studio UI
   ui_tick();
+  delay(200);
+
 }

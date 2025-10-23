@@ -38,9 +38,10 @@ void loadScreen(enum ScreensEnum screenId) {
     lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_FADE_IN, 200, 0, false);
 }
 
-void ui_init() {
-    create_screens();
+objects_t* ui_init() {
+    objects_t * objects = create_screens();
     loadScreen(SCREEN_ID_MAIN);
+    return objects;
 
 }
 
